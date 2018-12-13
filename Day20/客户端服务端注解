@@ -1,0 +1,29 @@
+
+
+client:sk
+<socket.socket fd=220, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=0>
+
+
+sever:sk
+(<socket.socket fd=224, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=0,
+laddr=('127.0.0.1', 8000), raddr=('127.0.0.1', 50974)>, ('127.0.0.1', 50974))
+
+其中;raddr是客户端的IP和端口号，因为客户端也是个进程也占有一个端口号，也就是客户端把本地端口,本地socket,本地IP发给了服务端
+
+注意：客户端SK和服务端SK没有任何关系
+
+sever下的方法： bind() listen() accept() recv() send()  sendall()
+
+client下的方法：connect() recv() send()
+
+注意：
+1.服务端的 .accept() 和 .rev()没有任何关系，前者是建立通信，后者是建立完成后接收信息
+
+2.python3里面传送内容一定是byte类型，用 bytes(对象,'utf8')
+
+3.socket通信是一接一发，一一对应，程序写了多少次，就执行多少次通信，如果要一直通信，需要写上while循环
+
+4.listen(3)指的是排队的3个端口进程，可以接受3个客户端信息，不包括正在连接成功的那个端口，一旦当前端口连接关闭，则可接收下端口信息
+
+5.如果硬性关闭客服端，则服务端要报错，因为客户端与服务端的conn通道被客服端单方关闭,这时服务端需要进行异常处理(try,except),
+  但是Python3.5之后就不会默认出这个异常错误了
