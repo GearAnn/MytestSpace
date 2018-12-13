@@ -1,0 +1,11 @@
+<data>
+    <country name="China">
+        <gdp>13600</gdp>
+        <year>2018</year>
+    </country>
+
+    <country name="Japan">
+        <gdp>19900</gdp>
+        <year>2018</year>
+    </country>
+</data>
