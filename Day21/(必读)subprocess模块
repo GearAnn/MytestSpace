@@ -1,0 +1,39 @@
+
+
+# FIXME 必读!!!
+
+我们几乎可以在任何操作系统上通过命令行指令与操作系统进行交互，比如Linux平台下的shell。那么我们如何通过Python来完成这些命令行指令的执行呢？
+另外，我们应该知道的是命令行指令的执行通常有两个我们比较关注的结果：
+
+1.命令执行的状态码--表示命令执行是否成功
+
+2.命令执行的输出结果--命令执行成功后的输出
+
+早期的Python版本中，我们主要是通过os.system()、os.popen().read()等函数来执行命令行指令的，另外还有一个很少使用的commands模块。
+但是从Python 2.4开始官方文档中建议使用的是subprocess模块，所以os模块和commands模块的相关函数在这里只提供一个简单的使用示例,
+重点是subprocess模块。
+
+subprocess是Python 2.4中新增的一个模块，它允许你生成新的进程，连接到它们的 input/output/error 管道，并获取它们的返回（状态）码。
+这个模块的目的在于替换几个旧的模块和方法，如：
+
+1.os.system
+2.os.spawn*
+
+重点：
+
+1.subprocess的目的就是启动一个新的进程并且与之通信。
+
+2.subprocess模块中只定义了一个类: Popen。可以使用Popen来创建进程，并与进程进行复杂的交互。
+
+总结：那么我们到底该用哪个模块、哪个函数来执行命令与系统及系统进行交互呢？：
+
+1.首先应该知道的是，Python2.4版本引入了subprocess模块用来替换os.system()、os.popen()、os.spawn*()等函数以及commands模块；
+  也就是说如果你使用的是Python 2.4及以上的版本就应该使用subprocess模块了。
+
+2.如果你的应用使用的Python 2.4以上，但是是Python 3.5以下的版本，Python官方给出的建议是使用subprocess.call()函数。
+  Python 2.5中新增了一个subprocess.check_call()函数，Python 2.7中新增了一个subprocess.check_output()函数，
+  这两个函数也可以按照需求进行使用。
+
+3.如果你的应用使用的是Python 3.5及以上的版本（目前应该还很少），Python官方给出的建议是尽量使用subprocess.run()函数。
+  当subprocess.call()、subprocess.check_call()、subprocess.check_output()和subprocess.run()这些高级函数无法满足需求时，
+  我们可以使用subprocess.Popen类来实现我们需要的复杂功能。
