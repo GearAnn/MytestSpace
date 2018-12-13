@@ -1,0 +1,80 @@
+
+一.用户空间与内核空间：
+操作系统都是采用虚拟存储器，操作系统的核心就是内核，独立于普通的软件。为了保证用户进程不能直接操作内核，操作系统将虚拟空间分成了2部分：
+一部分是用户空间，另一部分是内核空间。
+
+二.进程切换
+内核（kernel）必须有能力挂起正在CPU上运行的进程，并恢复之前挂起的某个进程的执。这种行为叫作进程切换，它是由操作系统来完成的。
+这个过程经过下列变化：
+1.保存处理机上下文，包括程序计数器和其他寄存器
+2.更新PCB信息
+3.把进程的PCB移入相应的队列，如：就绪、在某事件阻塞等队列
+4.选择其他进程执行，并更新其PVB
+5.更新内存管理的数据结构
+6.恢复处理机上下文
+
+三.进程的阻塞
+正在执行的进程，由于如：请求系统资源失败、等待某种操作完成、等待新数据等，则由系统自动执行阻塞（Block）变为阻塞状态。进程的阻塞是进程自身的一种主动
+行为，进程进入阻塞，是不占用CPU资源的。
+
+四.文件描述符（fd）
+当程序打开一个现有文件或者创建新文件时，内核向该进程赋予一个文件描述符（一个数字），它是一个索引值，内核为每一个进程所为何的该进程打开的记录表。
+
+五.缓存IO
+缓存IO又叫标准IO，也是大多数文件系统默认的IO。数据在传输过程中会先被拷贝到内核空间，然后再拷贝到用户空间。
+
+
+六.同步（synchronous）IO，异步(asynchronous)IO,阻塞（blocking）IO,非阻塞（non-blocking）IO
+   IO多路复用（IO multiplexing）也叫做：事件驱动IO（event driven IO）
+
+IO发生时涉及的对象和步奏：
+以network IO为例，其会涉及到2个系统对象：一个是调用这个IO的进程或者线程，另一个是系统内核(kernel)。
+
+当数据读取操作发生时，会经历2个阶段:（这2个阶段非常重要，IO模型的区别时就在这2个阶段上的不同）
+1.等待数据准备
+2.把数据从内核空间拷贝到进程(用户空间)中
+
+
+
+第一种IO模型：blocking IO (阻塞IO)
+默认情况下所有的socket都是阻塞IO。
+流程如下：
+    当用户进程进行了系统调用（recvfrom）,kernel就开始了IO的第一个阶段：准备数据。这个时候kernel就要等待数据到来。而在用户进程这边，整个
+  进程会被阻塞。当kernel一直等待数据准备完成，它就会将数据从kernel中拷贝到用户内存，然后kernel返回结果，用户进程才解除阻塞状态。
+  所以blocking IO的特点就是在IO执行的两个阶段都被block了。
+
+
+第二种IO模型：non-blocking IO(非阻塞IO)
+流程如下：
+    当用户进程进行了系统调用（recvfrom）,kernel若没有准备好数据，则返回给recvfrom一个错误，并不会block进程。然后revcfrom多次调用，
+    kernel多次返回错误，一直来回循环直到kernel等待数据到来。当kernel一直等待数据准备完成，它就会将数据从kernel中拷贝到用户内存，然后
+    kernel返回结果，用户进程才解除阻塞状态。所以non-blocking IO的特点就是在IO执行的第二个阶段都被block了。
+    注意：1.recvfrom和kernel返回错误的来回循环时，多次recvfrom之间互相没有阻塞；
+         2.recvfrom和kernel返回错误的来回循环时，也就是等待数据准备阶段，cpu权限一直在进程手中。
+
+
+第三种IO模型：IO多路复用,事件驱动IO（IO multiplexing，event driven IO）
+基本原理：select/epoll 这个function会不断的轮询所负责的所有socket，当某个socket有数据到达，就通知用户进程。
+流程如下：
+    过程和阻塞IO并没有太大不同，只是这里需要使用2个system call(select和recvfrom)，而阻塞IO只调用了一个system call(recvfrom).但是
+    IO多路复用的优势在于可以同时处理大量connection。实际上，对每一个socket，一般都设置为non-blocking,注意这里进程是被select阻塞住的，
+    而不是被 socket IO 阻塞住的。
+
+
+第四种IO模型：异步IO（asynchronous）
+     用户进程发起后，此时没有阻塞。从kernel的角度上看，当它收到一个asychronous请求后，它会立刻返回，所以不会给用户进程产生任何阻塞。然后，
+     kernel等待数据准备完成，然后将数据拷贝到用户空间，一切完成后，kernel会给用户进程发送sigal,提示进程操作完成。优势在于数据准备阶段和
+     拷贝阶段都没有阻塞。
+
+
+同步（synchronous IO）异步（asynchronous IO）之间的区别:
+  同步IO的定义：IO操作会导致进程阻塞，直到IO操作完成
+  异步IO的定义：IO操作不会导致进程阻塞
+  总结：所以blocking IO,non-blocking IO, IO multiplexing都是同步IO。只有asynchronous IO完全没有被阻塞。
+  注意：select,epoll,poll都属于IO多路复用，而IO多路复用属于同步IO，所以epoll只是个伪异步。
+
+
+
+
+
+
